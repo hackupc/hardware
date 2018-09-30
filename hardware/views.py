@@ -9,8 +9,10 @@ from django.utils import timezone
 from django.views.generic import TemplateView
 from django_filters.views import FilterView
 from django_tables2 import SingleTableMixin
+from django.db.models import Q
 from user.mixins import IsHardwareAdminMixin
 from user.models import User
+from checkin.models import CheckIn
 
 from hardware.models import Item, ItemType, Borrowing, Request
 from hardware.tables import BorrowingTable, BorrowingFilter, RequestTable, RequestFilter
@@ -243,8 +245,18 @@ class HardwareAdminView(IsHardwareAdminMixin, TabsViewMixin, TemplateView):
         """
         Gets a list of suggestions based on the input (typeahead)
         """
-        users = User.objects.filter(name__startswith=request.POST['query'])
-        return HttpResponse(serializers.serialize('json', list(users), fields=('name', 'email')))
+        checkins = CheckIn.objects.filter(
+            Q(application__user__name__icontains=request.POST['query'])
+            | Q(application__user__email__startswith=request.POST['query']) 
+            | Q(qr_identifier=request.POST['query']))
+
+        users = [x.application.user for x in checkins]
+
+        return HttpResponse(
+            serializers.serialize('json', 
+                list(users), 
+                fields=('name', 'email'))
+        )
 
     def post(self, request):
         if request.is_ajax:
