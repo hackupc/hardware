@@ -44,7 +44,7 @@
     border:thin solid black;
 }
 /*Popup QR scanner*/
-#hw-qr-btn{
+.qr-btn{
     vertical-align: middle;
     padding: 6px 8px 4px;
     border: thin solid #ddd;
